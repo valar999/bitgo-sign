@@ -11,20 +11,22 @@ import (
 	"time"
 )
 
-func SignTx(key, address, amountStr string, expire time.Time, seqId uint) ([]byte, error) {
+// SingTx calculates a hash of some data from transaction
+// and signature of this hash
+func SignTx(key, address, amountStr string, expire time.Time, seqId uint) (hash, sig []byte, err error) {
 	buf := new(bytes.Buffer)
 	buf.WriteString("ETHER")
 
 	addr, err := hex.DecodeString(strings.TrimPrefix(address, "0x"))
 	if err != nil {
-		return nil, err
+		return
 	}
 	buf.Write(addr)
 
 	amount := new(big.Int)
 	_, ok := amount.SetString(amountStr, 10)
 	if !ok {
-		return nil, err
+		return
 	}
 	buf.Write(math.U256Bytes(amount))
 
@@ -33,11 +35,16 @@ func SignTx(key, address, amountStr string, expire time.Time, seqId uint) ([]byt
 
 	h := sha3.NewLegacyKeccak256()
 	h.Write(buf.Bytes())
-	hash := h.Sum(nil)
+	hash = h.Sum(nil)
 
 	k, err := crypto.HexToECDSA(key)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return crypto.Sign(hash, k)
+	sig, err = crypto.Sign(hash, k)
+	if err != nil {
+		return
+	}
+
+	return
 }
