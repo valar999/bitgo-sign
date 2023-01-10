@@ -43,3 +43,14 @@ const password = "secret-password";
 
 const prv = bitgo.decrypt({ input: key, password });
 ```
+
+Second, convert "xprv" to "raw" key
+
+```js
+const { bip32 } = require('@bitgo/utxo-lib');
+const ethUtil = require('ethereumjs-util');
+
+const xprv = "xprv9s...";
+const node = bip32.fromBase58(xprv);
+const key = node.privateKey.toString('hex');
+```
