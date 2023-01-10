@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/hex"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"strings"
 	"time"
 )
 
-func SignTx(address string, amountStr string, expire time.Time, seqId uint) ([]byte, error) {
+func SignTx(key, address, amountStr string, expire time.Time, seqId uint) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	buf.WriteString("ETHER")
 
@@ -32,5 +33,11 @@ func SignTx(address string, amountStr string, expire time.Time, seqId uint) ([]b
 
 	h := sha3.NewLegacyKeccak256()
 	h.Write(buf.Bytes())
-	return h.Sum(nil), nil
+	hash := h.Sum(nil)
+
+	k, err := crypto.HexToECDSA(key)
+	if err != nil {
+		return nil, err
+	}
+	return crypto.Sign(hash, k)
 }
